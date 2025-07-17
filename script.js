@@ -14,7 +14,7 @@ for (let row = 0; row < 8; row++) {
     if ((row + col) % 2 === 1) {
       if (row < 3) {
         const piece = document.createElement('div');
-        piece.classList.add('piece', 'red');
+        piece.classList.add('piece', 'white');
         square.appendChild(piece);
       } else if (row > 4) {
         const piece = document.createElement('div');
