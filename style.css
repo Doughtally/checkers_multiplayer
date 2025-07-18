@@ -42,3 +42,7 @@ body {
 .black {
   background-color: black;
 }
+
+.highlight {
+  outline: 2px solid red;
+}
