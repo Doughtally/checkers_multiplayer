@@ -7,7 +7,7 @@ let playerNames = {
   black: 'Player 2'
 };
 
-// Drawing  board
+// Drawing board
 
 const board = document.getElementById('board');
 
@@ -40,4 +40,31 @@ for (let row = 0; row < 8; row++) {
   }
 }
 
+// more clickable?
+
+function handleSquareClick(square) {
+  const piece = square.querySelector('.piece');
+
+  // Select a piece
+  if (piece && piece.classList.contains(currentPlayer)) {
+    selectedPiece = square;
+    highlight(square);
+    return;
+  }
+
+  // Try to move
+  if (selectedPiece && isValidMove(selectedPiece, square)) {
+    movePiece(selectedPiece, square);
+    selectedPiece = null;
+    togglePlayer();
+    updateTurnDisplay();
+  }
+}
+
+//highlight square
+
+function highlight(square) {
+  document.querySelectorAll('.square').forEach(sq => sq.classList.remove('highlight'));
+  square.classList.add('highlight');
+}
 
