@@ -119,3 +119,36 @@ function isValidMove(from, to) {
 
   return false;
 }
+
+//support
+function opponent() {
+  return currentPlayer === 'white' ? 'black' : 'white';
+}
+
+function togglePlayer() {
+  currentPlayer = opponent();
+}
+
+//player turns
+
+function updateTurnDisplay() {
+  document.getElementById('turnDisplay').innerText = `Turn: ${playerNames[currentPlayer]} (${currentPlayer})`;
+}
+
+//gameplay
+
+function startGame() {
+  const p1 = document.getElementById('player1').value.trim();
+  const p2 = document.getElementById('player2').value.trim();
+
+  if (p1) playerNames.white = p1;
+  if (p2) playerNames.black = p2;
+
+  document.getElementById('setup').style.display = 'none';
+  document.getElementById('board').style.display = 'grid';
+
+  currentPlayer = 'white'; // always start with white
+
+  alert(`${playerNames.white} (White) goes first.`);
+  updateTurnDisplay(); // 
+}
