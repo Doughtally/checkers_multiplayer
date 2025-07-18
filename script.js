@@ -1,6 +1,16 @@
+// player allocation
+
+let selectedPiece = null;
+let currentPlayer = 'white';
+let playerNames = {
+  white: 'Player 1',
+  black: 'Player 2'
+};
+
+// Drawing  board
+
 const board = document.getElementById('board');
 
-// Draw the board
 for (let row = 0; row < 8; row++) {
   for (let col = 0; col < 8; col++) {
     const square = document.createElement('div');
@@ -10,7 +20,7 @@ for (let row = 0; row < 8; row++) {
     square.dataset.col = col;
     board.appendChild(square);
 
-    // Add pieces
+    // Add checkers onto board
     if ((row + col) % 2 === 1) {
       if (row < 3) {
         const piece = document.createElement('div');
@@ -22,5 +32,12 @@ for (let row = 0; row < 8; row++) {
         square.appendChild(piece);
       }
     }
+
+    // board clickable
+    square.addEventListener('click', () => handleSquareClick(square));
+    board.appendChild(square);
+    
   }
 }
+
+
