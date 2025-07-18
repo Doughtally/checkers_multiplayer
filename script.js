@@ -68,3 +68,54 @@ function highlight(square) {
   square.classList.add('highlight');
 }
 
+//moving pieces
+function movePiece(fromSquare, toSquare) {
+  const piece = fromSquare.querySelector('.piece');
+  toSquare.appendChild(piece);
+  fromSquare.classList.remove('highlight');
+
+  // Check for kinging
+  const toRow = parseInt(toSquare.dataset.row);
+  if ((currentPlayer === 'white' && toRow === 7) || (currentPlayer === 'black' && toRow === 0)) {
+    piece.classList.add('king');
+    piece.innerText = 'K';
+  }
+}
+
+//mmoves validate
+
+function isValidMove(from, to) {
+  const fromRow = parseInt(from.dataset.row);
+  const fromCol = parseInt(from.dataset.col);
+  const toRow = parseInt(to.dataset.row);
+  const toCol = parseInt(to.dataset.col);
+
+  // Must be a dark square and empty
+  if (!to.classList.contains('dark') || to.querySelector('.piece')) return false;
+
+  const piece = from.querySelector('.piece');
+  const isKing = piece.classList.contains('king');
+  const direction = currentPlayer === 'white' ? 1 : -1;
+
+  const rowDiff = toRow - fromRow;
+  const colDiff = toCol - fromCol;
+
+  // Simple diagonal move
+  if (Math.abs(rowDiff) === 1 && Math.abs(colDiff) === 1) {
+    if (isKing || rowDiff === direction) return true;
+  }
+
+  // Jump move
+  if (Math.abs(rowDiff) === 2 && Math.abs(colDiff) === 2) {
+    const midRow = (fromRow + toRow) / 2;
+    const midCol = (fromCol + toCol) / 2;
+    const midSquare = document.querySelector(`[data-row='${midRow}'][data-col='${midCol}']`);
+    const midPiece = midSquare.querySelector('.piece');
+    if (midPiece && midPiece.classList.contains(opponent())) {
+      midSquare.innerHTML = '';
+      return isKing || rowDiff === 2 * direction;
+    }
+  }
+
+  return false;
+}
