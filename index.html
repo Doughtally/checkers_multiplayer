@@ -8,8 +8,20 @@
 </head>
 <body>
   <h1>Checkers Multiplayer</h1>
-  <div id="board"></div>
 
+<!-- players setup -->
+  <div id="setup">
+    <h2>Checkers Game Setup</h2>
+    <label>Player 1 (White): <input type="text" id="player1" placeholder="e.g. Alice" /></label><br><br>
+    <label>Player 2 (Black): <input type="text" id="player2" placeholder="e.g. Bob" /></label><br><br>
+    <button onclick="startGame()">Start Game</button>
+  </div>
+
+  
+  <!--board setup -->
+  <div id="board"></div>
+  <p id="turnDisplay"></p>
+  
   <script src="script.js?v=1.1"></script>
 </body>
 </html>
