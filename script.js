@@ -97,13 +97,7 @@ function movePiece(fromSquare, toSquare) {
   }
 }
 
-  // making a king 
-  const toRow = parseInt(toSquare.dataset.row);
-  if ((currentPlayer === 'white' && toRow === 7) || (currentPlayer === 'black' && toRow === 0)) {
-    piece.classList.add('king');
-    piece.innerHTML = '<span class="king-label">K</span>';
-  }
-}
+
 
 //mmoves validate
 
