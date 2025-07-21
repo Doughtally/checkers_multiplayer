@@ -61,6 +61,8 @@ function handleSquareClick(square) {
   }
 }
 
+
+
 //highlight square
 
 function highlight(square) {
@@ -152,3 +154,69 @@ function startGame() {
   alert(`${playerNames.white} (White) goes first.`);
   updateTurnDisplay(); // 
 }
+
+//stalemate checker
+
+function hasAnyLegalMoves(playerColor) {
+  const pieces = document.querySelectorAll(`.piece.${playerColor}`);
+  for (let piece of pieces) {
+    const square = piece.parentElement;
+    const fromRow = parseInt(square.dataset.row);
+    const fromCol = parseInt(square.dataset.col);
+    const isKing = piece.classList.contains('king');
+    const directions = isKing ? [-1, 1] : [playerColor === 'white' ? 1 : -1];
+
+    for (let dr of directions) {
+      for (let dc of [-1, 1]) {
+        const toRow = fromRow + dr;
+        const toCol = fromCol + dc;
+        const toSquare = document.querySelector(`[data-row='${toRow}'][data-col='${toCol}']`);
+        if (toSquare && isValidMove(square, toSquare)) return true;
+
+        const jumpRow = fromRow + dr * 2;
+        const jumpCol = fromCol + dc * 2;
+        const jumpSquare = document.querySelector(`[data-row='${jumpRow}'][data-col='${jumpCol}']`);
+        if (jumpSquare && isValidMove(square, jumpSquare)) return true;
+      }
+    }
+  }
+  return false;
+}
+
+//wins & stalemate
+
+function checkWinCondition() {
+  const whitePieces = document.querySelectorAll('.piece.white');
+  const blackPieces = document.querySelectorAll('.piece.black');
+
+  if (whitePieces.length === 0) {
+    alert(`${playerNames.black} (black) wins!`);
+    endGame();
+    return;
+  }
+
+  if (blackPieces.length === 0) {
+    alert(`${playerNames.white} (white) wins!`);
+    endGame();
+    return;
+  }
+
+  if (!hasAnyLegalMoves('white') && !hasAnyLegalMoves('black')) {
+    alert("Stalemate! It's a draw.");
+    endGame();
+  }
+}
+
+//end/reset game 
+
+function endGame() {
+  document.querySelectorAll('.square').forEach(sq => {
+    sq.replaceWith(sq.cloneNode(true)); // removes all event listeners
+  });
+
+  document.getElementById('turnDisplay').innerText = 'Game over';
+  document.getElementById('resetButton').style.display = 'inline-block';
+}
+
+
+
