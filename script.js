@@ -74,8 +74,28 @@ function highlight(square) {
 //moving pieces
 function movePiece(fromSquare, toSquare) {
   const piece = fromSquare.querySelector('.piece');
+  const fromRow = parseInt(fromSquare.dataset.row);
+  const fromCol = parseInt(fromSquare.dataset.col);
+  const toRow = parseInt(toSquare.dataset.row);
+  const toCol = parseInt(toSquare.dataset.col);
+
+  // If it's a jump, remove the captured piece
+  if (Math.abs(fromRow - toRow) === 2 && Math.abs(fromCol - toCol) === 2) {
+    const midRow = (fromRow + toRow) / 2;
+    const midCol = (fromCol + toCol) / 2;
+    const midSquare = document.querySelector(`[data-row='${midRow}'][data-col='${midCol}']`);
+    midSquare.innerHTML = '';
+  }
+
   toSquare.appendChild(piece);
   fromSquare.classList.remove('highlight');
+
+  // king logic
+  if ((currentPlayer === 'white' && toRow === 7) || (currentPlayer === 'black' && toRow === 0)) {
+    piece.classList.add('king');
+    piece.innerHTML = '<span class="king-label">K</span>';
+  }
+}
 
   // making a king 
   const toRow = parseInt(toSquare.dataset.row);
@@ -115,7 +135,6 @@ function isValidMove(from, to) {
     const midSquare = document.querySelector(`[data-row='${midRow}'][data-col='${midCol}']`);
     const midPiece = midSquare.querySelector('.piece');
     if (midPiece && midPiece.classList.contains(opponent())) {
-      midSquare.innerHTML = '';
       return isKing || rowDiff === 2 * direction;
     }
   }
