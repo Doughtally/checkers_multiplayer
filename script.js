@@ -74,7 +74,7 @@ function movePiece(fromSquare, toSquare) {
   toSquare.appendChild(piece);
   fromSquare.classList.remove('highlight');
 
-  // Check for kinging
+  // making a king 
   const toRow = parseInt(toSquare.dataset.row);
   if ((currentPlayer === 'white' && toRow === 7) || (currentPlayer === 'black' && toRow === 0)) {
     piece.classList.add('king');
