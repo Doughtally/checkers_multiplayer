@@ -53,9 +53,10 @@ function handleSquareClick(square) {
   }
 
   // Try to move
-  if (selectedPiece && isValidMove(selectedPiece, square)) {
+   if (selectedPiece && isValidMove(selectedPiece, square)) {
     movePiece(selectedPiece, square);
     selectedPiece = null;
+    checkWinCondition(); // 👈 THIS IS WHAT WAS MISSING
     togglePlayer();
     updateTurnDisplay();
   }
@@ -207,7 +208,7 @@ function checkWinCondition() {
   }
 }
 
-//end/reset game 
+//end game 
 
 function endGame() {
   document.querySelectorAll('.square').forEach(sq => {
@@ -217,6 +218,42 @@ function endGame() {
   document.getElementById('turnDisplay').innerText = 'Game over';
   document.getElementById('resetButton').style.display = 'inline-block';
 }
+
+//reset game
+function resetGame() {
+  board.innerHTML = '';
+  selectedPiece = null;
+  currentPlayer = 'white';
+
+  for (let row = 0; row < 8; row++) {
+    for (let col = 0; col < 8; col++) {
+      const square = document.createElement('div');
+      square.classList.add('square');
+      square.classList.add((row + col) % 2 === 0 ? 'light' : 'dark');
+      square.dataset.row = row;
+      square.dataset.col = col;
+
+      if ((row + col) % 2 === 1) {
+        if (row < 3) {
+          const piece = document.createElement('div');
+          piece.classList.add('piece', 'white');
+          square.appendChild(piece);
+        } else if (row > 4) {
+          const piece = document.createElement('div');
+          piece.classList.add('piece', 'black');
+          square.appendChild(piece);
+        }
+      }
+
+      square.addEventListener('click', () => handleSquareClick(square));
+      board.appendChild(square);
+    }
+  }
+
+  updateTurnDisplay();
+  document.getElementById('resetButton').style.display = 'none';
+}
+
 
 
 
