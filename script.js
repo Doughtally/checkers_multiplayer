@@ -78,7 +78,7 @@ function movePiece(fromSquare, toSquare) {
   const toRow = parseInt(toSquare.dataset.row);
   if ((currentPlayer === 'white' && toRow === 7) || (currentPlayer === 'black' && toRow === 0)) {
     piece.classList.add('king');
-    piece.innerText = 'K';
+    piece.innerHTML = '<span class="king-label">K</span>';
   }
 }
 
