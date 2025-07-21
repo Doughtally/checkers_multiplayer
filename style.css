@@ -46,3 +46,12 @@ body {
 .highlight {
   outline: 2px solid red;
 }
+
+.king-label {
+  color: red;
+  font-weight: bold;
+  font-size: 20px;
+  line-height: 40px;
+  display: block;
+  text-align: center;
+}
