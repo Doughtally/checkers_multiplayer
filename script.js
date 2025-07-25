@@ -80,7 +80,7 @@ function handleSquareClick(square) {
     togglePlayer();
     updateTurnDisplay();
   }
-}}
+}
 
  
 //highlight square
