@@ -7,6 +7,8 @@ let playerNames = {
   black: 'Player 2'
 };
 
+let forcedJumpSquares = [];
+
 // Drawing board
 
 const board = document.getElementById('board');
@@ -40,30 +42,47 @@ for (let row = 0; row < 8; row++) {
   }
 }
 
-// more clickable?
+// more clickable? & help enforce jump rule
 
 function handleSquareClick(square) {
   const piece = square.querySelector('.piece');
 
-  // Select a piece
+  if (!selectedPiece) {
+    forcedJumpSquares = getForcedJumpSquares(currentPlayer);
+  }
+  
+  // Selecting a piece 
   if (piece && piece.classList.contains(currentPlayer)) {
+   if (forcedJumpSquares.length > 0 && !forcedJumpSquares.includes(square)) {
+      alert('You must choose a piece that can jump.');
+      return;
+    }
+
     selectedPiece = square;
     highlight(square);
     return;
   }
+  
+  // Moving a selected piece
+  if (selectedPiece && isValidMove(selectedPiece, square)) {
+    const isJump = Math.abs(parseInt(selectedPiece.dataset.row) - parseInt(square.dataset.row)) === 2;
 
-  // Try to move
-   if (selectedPiece && isValidMove(selectedPiece, square)) {
+    // Enforce jump rule
+    if (forcedJumpSquares.length > 0 && !isJump) {
+      alert('You must jump if able.');
+      return;
+    }
+
     movePiece(selectedPiece, square);
     selectedPiece = null;
-    checkWinCondition(); // 👈 THIS IS WHAT WAS MISSING
+    forcedJumpSquares = []; // reset for next turn
+    checkWinCondition();
     togglePlayer();
     updateTurnDisplay();
   }
-}
+}}
 
-
-
+ 
 //highlight square
 
 function highlight(square) {
@@ -195,6 +214,34 @@ function hasAnyLegalMoves(playerColor) {
     }
   }
   return false;
+}
+
+//forces jump when available
+
+function getForcedJumpSquares(playerColor) {
+  const candidates = [];
+  const pieces = document.querySelectorAll(`.piece.${playerColor}`);
+
+  for (let piece of pieces) {
+    const square = piece.parentElement;
+    const fromRow = parseInt(square.dataset.row);
+    const fromCol = parseInt(square.dataset.col);
+    const isKing = piece.classList.contains('king');
+    const directions = isKing ? [-1, 1] : [playerColor === 'white' ? 1 : -1];
+
+    for (let dr of directions) {
+      for (let dc of [-1, 1]) {
+        const toRow = fromRow + dr * 2;
+        const toCol = fromCol + dc * 2;
+        const jumpSquare = document.querySelector(`[data-row='${toRow}'][data-col='${toCol}']`);
+        if (jumpSquare && isValidMove(square, jumpSquare)) {
+          candidates.push(square);
+          break; // this piece can jump; no need to check more directions
+        }
+      }
+    }
+  }
+  return candidates;
 }
 
 //wins & stalemate
