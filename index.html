@@ -8,19 +8,41 @@
 </head>
 <body>
   <h1>Checkers Multiplayer</h1>
+  <hr>
 
 <!-- players setup -->
-  <div id="setup">
+
+<div id="setupselect"> <!-- dropdown for selecting game mode-->
     <h2>Checkers Game Setup</h2>
-    <label>Player 1 (White): <input type="text" id="player1" placeholder="e.g. Alice" /></label><br><br>
-    <label>Player 2 (Black): <input type="text" id="player2" placeholder="e.g. Bob" /></label><br><br>
-    <button onclick="startGame()">Start Game</button>
+    <label for="gamemode">Select Game Mode:</label>
+      <select name="gamemode" id="gamemode">
+      <option value="2player">2 Player Game</option>
+      <option value="4player">4 Player Torunament</option>
+      </select>
+       <br> <br>
+  </div>
+
+  <div id="setup2p">
+    <label>Player 1 (White): <input type="text" id="player1_2p" placeholder="e.g. Alice" /></label><br><br>
+    <label>Player 2 (Black): <input type="text" id="player2_2p" placeholder="e.g. Bob" /></label><br><br>
+    <button id="2pstartButton" onclick="startGame()">Start 2 Player Game</button>
+  </div>
+
+  <div id="setup4p">
+    <label>Player 1 (White): <input type="text" id="player1_4p" placeholder="e.g. Alice" /></label>
+    <label>Player 3 (White): <input type="text" id="player3_4p" placeholder="e.g. Jane" /></label><br><br>
+    <label>Player 2 (Black): <input type="text" id="player2_4p" placeholder="e.g. Bob" /></label>
+    <label>Player 4 (Black): <input type="text" id="player4_4p" placeholder="e.g. John" /></label><br><br>
+    <button id="4pstartButton" onclick="startGame()">Start 4 Player Tournament</button>
   </div>
 
   
   <!--board setup -->
   <div id="board"></div>
   <p id="turnDisplay"></p>
+
+  <!--Next Round button  -->
+  <button id="roundButton" onclick="resetRound()" style="display: none;">Next Round</button>
 
   <!--Reset button  -->
   <button id="resetButton" onclick="resetGame()" style="display: none;">Play Again</button>

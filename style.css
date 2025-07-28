@@ -3,6 +3,11 @@ body {
   text-align: center;
   margin: 0;
   background-color: #f0f0f0;
+
+}
+
+#setup2p, #setup4p {
+    display: none;
 }
 
 #board {
@@ -50,7 +55,7 @@ body {
 .king-label {
   color: red;
   font-weight: bold;
-  font-size: 20px;
+  font-size: 38px;
   line-height: 40px;
   display: block;
   text-align: center;

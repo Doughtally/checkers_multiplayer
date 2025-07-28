@@ -1,16 +1,26 @@
-// player allocation
 
+//Used for preventing gameplay before setup is complete
+let gameStarted = false;
+
+//globally defines gamemode to allow functions to behave differently with 2-4 players
+let gamemode = null;
+
+//tracks rounds for tournament play
+let gameCounter = 1;
+
+//Initial player/piece allocation
 let selectedPiece = null;
 let currentPlayer = 'white';
-let playerNames = {
+const playerNames = {
   white: 'Player 1',
   black: 'Player 2'
 };
+let victor1, victor2, victor3 = ' ';
 
+//Used for enforsing jump rules
 let forcedJumpSquares = [];
 
-// Drawing board
-
+//Game board generation
 const board = document.getElementById('board');
 
 for (let row = 0; row < 8; row++) {
@@ -42,9 +52,95 @@ for (let row = 0; row < 8; row++) {
   }
 }
 
-// more clickable? & help enforce jump rule
+//input UI initialisation/visibility
+function updateSetupDisplay() {
+  const gamemodeSelect = document.getElementById("gamemode");
+  const setup2p = document.getElementById("setup2p");
+  const setup4p = document.getElementById("setup4p");
+
+  if (gamemodeSelect.value === "2player") {
+    setup2p.style.display = "block";
+    setup4p.style.display = "none";
+  } else if (gamemodeSelect.value === "4player") {
+    setup2p.style.display = "none";
+    setup4p.style.display = "block";
+  }
+}
+
+//page load call for setup UI
+document.addEventListener("DOMContentLoaded", function () {
+const gamemodeSelect = document.getElementById("gamemode");
+  gamemodeSelect.addEventListener("change", updateSetupDisplay);
+  updateSetupDisplay();
+});
+
+//Completes game setup and initiates game/player tracking
+function startGame() {
+  gamemode = document.getElementById("gamemode").value;
+  let p1, p2;
+  //retrieves player names from setup UI
+  if (gamemode === "2player") {
+    const name1 = document.getElementById('player1_2p').value.trim() || null;
+    const name2 = document.getElementById('player2_2p').value.trim() || null;
+
+    if (!name1 || !name2) { //ensures names are entered for both players
+    alert("Please enter names for both players."); 
+    return;
+    }
+  
+    p1 = name1;
+    p2 = name2;
+
+  } else if (gamemode === "4player") {
+    const name1 = document.getElementById('player1_4p').value.trim() || null;
+    const name2 = document.getElementById('player2_4p').value.trim() || null;
+    const name3 = document.getElementById('player3_4p').value.trim() || null;
+    const name4 = document.getElementById('player4_4p').value.trim() || null;
+
+    if (!name1 || !name2 || !name3 || !name4) { //ensures names entered for all players
+    alert("Please enter names for all players."); 
+    return;
+    }
+  
+  //assigns received player names to game based on round of play
+    if (gameCounter === 1) {
+      p1 = name1;
+      p2 = name2;
+    } else if (gameCounter === 2) {
+      p1 = name3;
+      p2 = name4;
+    } else if (gameCounter === 3) {
+      p1 = victor1;
+      p2 = victor2;
+    } else {
+      alert("Tournament is complete.")
+      return;
+    }
+  }
+  //assigns the players to pieces
+  playerNames.white = p1;
+  playerNames.black = p2;
+
+  currentPlayer = 'white'; //always start with white pieces
+
+  //hides setup options/UI from user in preparation for gameplay
+  document.getElementById("setupselect").style.display = "none";
+  document.getElementById("gamemode").style.display = "none";
+  document.getElementById("setup2p").style.display = "none";
+  document.getElementById("setup4p").style.display = "none";
+
+  gameStarted = true; //allows gameplay to start
+
+  alert(`${playerNames.white} (White) goes first.`);
+  updateTurnDisplay(); 
+}
+
+//mouse activated gameplay & enforcing of jump rules
 
 function handleSquareClick(square) {
+
+  if (!gameStarted) return; //prevents gameplay/movement before setup is complete
+  
   const piece = square.querySelector('.piece');
 
   if (!selectedPiece) {
@@ -76,12 +172,11 @@ function handleSquareClick(square) {
     movePiece(selectedPiece, square);
     selectedPiece = null;
     forcedJumpSquares = []; // reset for next turn
-    checkWinCondition();
     togglePlayer();
     updateTurnDisplay();
+    checkWinCondition();
   }
 }
-
  
 //highlight square
 
@@ -112,13 +207,13 @@ function movePiece(fromSquare, toSquare) {
   // king logic
   if ((currentPlayer === 'white' && toRow === 7) || (currentPlayer === 'black' && toRow === 0)) {
     piece.classList.add('king');
-    piece.innerHTML = '<span class="king-label">K</span>';
+    piece.innerHTML = '<span class="king-label">♔</span>';
   }
 }
 
 
 
-//mmoves validate
+//move validation
 
 function isValidMove(from, to) {
   const fromRow = parseInt(from.dataset.row);
@@ -164,29 +259,18 @@ function togglePlayer() {
   currentPlayer = opponent();
 }
 
-//player turns
 
+//displays player turn (also shows round for tournament)
 function updateTurnDisplay() {
-  document.getElementById('turnDisplay').innerText = `Turn: ${playerNames[currentPlayer]} (${currentPlayer})`;
+
+  if (gamemode === "2player") {
+    document.getElementById('turnDisplay').innerText = 
+    `Player turn: ${playerNames[currentPlayer]} (${currentPlayer})`;
+
+} else document.getElementById('turnDisplay').innerText = 
+`Player turn: ${playerNames[currentPlayer]} (${currentPlayer})  -  Round: ${gameCounter}`
 }
 
-//gameplay
-
-function startGame() {
-  const p1 = document.getElementById('player1').value.trim();
-  const p2 = document.getElementById('player2').value.trim();
-
-  if (p1) playerNames.white = p1;
-  if (p2) playerNames.black = p2;
-
-  document.getElementById('setup').style.display = 'none';
-  document.getElementById('board').style.display = 'grid';
-
-  currentPlayer = 'white'; // always start with white
-
-  alert(`${playerNames.white} (White) goes first.`);
-  updateTurnDisplay(); // 
-}
 
 //stalemate checker
 
@@ -252,38 +336,75 @@ function checkWinCondition() {
 
   if (whitePieces.length === 0) {
     alert(`${playerNames.black} (black) wins!`);
+    storeVictor(playerNames.black);
     endGame();
     return;
   }
 
   if (blackPieces.length === 0) {
     alert(`${playerNames.white} (white) wins!`);
+    storeVictor(playerNames.white);
     endGame();
     return;
   }
 
   if (!hasAnyLegalMoves('white') && !hasAnyLegalMoves('black')) {
-    alert("Stalemate! It's a draw.");
+    if (gamemode === "4player") {
+      alert("Stalemate! Tournament cannot continue.");
+      victor3 = ' '; // force draw
+      gameCounter = 4; // skip to end
+    } else {
+      alert("Stalemate! It's a draw.");
+    }
     endGame();
   }
 }
 
-//end game 
 
+//stores the winner of each round
+function storeVictor(winner) {
+  if (gameCounter === 1) {
+    victor1 = winner;
+  } else if (gameCounter === 2) {
+    victor2 = winner;
+  } else if (gameCounter === 3) {
+    victor3 = winner;
+  }
+}
+
+
+//end game or round
 function endGame() {
   document.querySelectorAll('.square').forEach(sq => {
-    sq.replaceWith(sq.cloneNode(true)); // removes all event listeners
+    sq.replaceWith(sq.cloneNode(true)); // removes event listeners
   });
 
   document.getElementById('turnDisplay').innerText = 'Game over';
-  document.getElementById('resetButton').style.display = 'inline-block';
+
+  if (gamemode === "2player") {
+    document.getElementById('resetButton').style.display = 'inline-block';
+  } else if (gameCounter < 3) {
+    gameCounter++;
+    document.getElementById('roundButton').style.display = 'inline-block';
+  } else {
+    const winner = victor3 !== ' ' ? victor3 : null;
+    alert(winner ? `Tournament complete - ${winner} wins!` : `Tournament complete - it's a draw!`);
+    document.getElementById('resetButton').style.display = 'inline-block';
+  }
 }
 
-//reset game
-function resetGame() {
+//initialises the next round of play in a tournament
+function resetRound() {
+  resetBoard();  // Just resets board, keeps winners and names
+  startGame();
+}
+
+//reset board between rounds without resetting all game info
+function resetBoard() {
   board.innerHTML = '';
   selectedPiece = null;
   currentPlayer = 'white';
+  forcedJumpSquares = [];
 
   for (let row = 0; row < 8; row++) {
     for (let col = 0; col < 8; col++) {
@@ -312,6 +433,53 @@ function resetGame() {
 
   updateTurnDisplay();
   document.getElementById('resetButton').style.display = 'none';
+  document.getElementById('roundButton').style.display = 'none';
+}
+
+//fully resets the player/game info and allows for a new game to be set up
+function resetGame() {
+  board.innerHTML = '';
+  selectedPiece = null;
+  currentPlayer = 'white';
+  gameCounter = 1;
+  gameStarted = false;
+  victor1 = '';
+  victor2 = '';
+  victor3 = ' ';
+
+
+  for (let row = 0; row < 8; row++) {
+    for (let col = 0; col < 8; col++) {
+      const square = document.createElement('div');
+      square.classList.add('square');
+      square.classList.add((row + col) % 2 === 0 ? 'light' : 'dark');
+      square.dataset.row = row;
+      square.dataset.col = col;
+
+      if ((row + col) % 2 === 1) {
+        if (row < 3) {
+          const piece = document.createElement('div');
+          piece.classList.add('piece', 'white');
+          square.appendChild(piece);
+        } else if (row > 4) {
+          const piece = document.createElement('div');
+          piece.classList.add('piece', 'black');
+          square.appendChild(piece);
+        }
+      }
+
+      square.addEventListener('click', () => handleSquareClick(square));
+      board.appendChild(square);
+    }
+  }
+
+  //resets the displaying of setup UI
+  document.getElementById("setupselect").style.display = "block";
+  document.getElementById('resetButton').style.display = 'none';
+  document.getElementById('roundButton').style.display = 'none';
+  document.getElementById("gamemode").style.display = "inline-block";
+  document.getElementById("startButton").style.display = "inline-block";
+  document.getElementById("turnDisplay").style.display = 'none';
 }
 
 
