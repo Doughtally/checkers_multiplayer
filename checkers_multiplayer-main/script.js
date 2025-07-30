@@ -8,12 +8,6 @@ let gamemode = null;
 //tracks rounds for tournament play
 let gameCounter = 1;
 
-//tracks if a multi-jump is in play
-let multiJumpInProgress = false;
-
-//tracks the square a piece jumped from for multi-jump logic
-let jumpOriginSquare = null;
-
 //Initial player/piece allocation
 let selectedPiece = null;
 let currentPlayer = 'white';
@@ -23,7 +17,7 @@ const playerNames = {
 };
 let victor1, victor2, victor3 = ' ';
 
-//Used for enforcing jump rules
+//Used for enforsing jump rules
 let forcedJumpSquares = [];
 
 //Game board generation
@@ -113,14 +107,14 @@ function startGame() {
       p1 = name1;
       p2 = name2;
     } else if (gameCounter === 2) {
-        p1 = name3;
-        p2 = name4;
+      p1 = name3;
+      p2 = name4;
     } else if (gameCounter === 3) {
-        p1 = victor1;
-        p2 = victor2;
+      p1 = victor1;
+      p2 = victor2;
     } else {
-        alert("Tournament is complete.")
-        return;
+      alert("Tournament is complete.")
+      return;
     }
   }
   //assigns the players to pieces
@@ -141,72 +135,51 @@ function startGame() {
   updateTurnDisplay(); 
 }
 
-//mouse-activated gameplay handling & enforcing of jump rule interaction
-function handleSquareClick(square) {
-  if (!gameStarted) return;
+//mouse activated gameplay & enforcing of jump rules
 
+function handleSquareClick(square) {
+
+  if (!gameStarted) return; //prevents gameplay/movement before setup is complete
+  
   const piece = square.querySelector('.piece');
 
-  //ensures subsequent jumps can only be completed with the piece that jumped
-  if (multiJumpInProgress) {
-    if (!isValidMove(jumpOriginSquare, square)) {
-      alert(`${playerNames[currentPlayer]}, you must continue jumping with the same piece.`);
-      return;
-    }
-  //keeps jumping piece selected in the event of a multi-jump
-  } else {
+  if (!selectedPiece) {
     forcedJumpSquares = getForcedJumpSquares(currentPlayer);
-
-    if (piece && piece.classList.contains(currentPlayer)) {
-      if (forcedJumpSquares.length > 0 && !forcedJumpSquares.includes(square)) {
-        alert("You must choose a piece that can jump.");
-        return;
-      }
-
-      //ensures player can change their initial selection for non-jump moves
-      selectedPiece = square;
-      highlight(square);
+  }
+  
+  // Selecting a piece 
+  if (piece && piece.classList.contains(currentPlayer)) {
+   if (forcedJumpSquares.length > 0 && !forcedJumpSquares.includes(square)) {
+      alert('You must choose a piece that can jump.');
       return;
     }
+
+    selectedPiece = square;
+    highlight(square);
+    return;
   }
+  
+  // Moving a selected piece
+  if (selectedPiece && isValidMove(selectedPiece, square)) {
+    const isJump = Math.abs(parseInt(selectedPiece.dataset.row) - parseInt(square.dataset.row)) === 2;
 
-  //validates general movement of a selected piece
-  if (selectedPiece || (multiJumpInProgress && jumpOriginSquare)) {
-    const activePieceSquare = selectedPiece || jumpOriginSquare;
+    // Enforce jump rule
+    if (forcedJumpSquares.length > 0 && !isJump) {
+      alert('You must jump if able.');
+      return;
+    }
 
-    if (isValidMove(activePieceSquare, square)) {
-      const isJump = Math.abs(parseInt(activePieceSquare.dataset.row) - parseInt(square.dataset.row)) === 2;
-
-      if (forcedJumpSquares.length > 0 && !isJump) {
-        alert("You must jump if able.");
-        return;
-      }
-
-      movePiece(activePieceSquare, square);
-
-      //Checks for multi-jumps
-      if (isJump && canPieceJump(square)) {
-        multiJumpInProgress = true;
-        jumpOriginSquare = square;
-        selectedPiece = square;
-        highlight(square);
-        return;
-      }
-
-      //ends the turn when no more jumps are possible
-      multiJumpInProgress = false;
-      jumpOriginSquare = null;
-      selectedPiece = null;
-      forcedJumpSquares = [];
-      togglePlayer();
-      updateTurnDisplay();
-      checkWinCondition();
-    } 
-    
+    movePiece(selectedPiece, square);
+    selectedPiece = null;
+    forcedJumpSquares = []; // reset for next turn
+    togglePlayer();
+    updateTurnDisplay();
+    checkWinCondition();
   }
 }
  
-//highlighting of squares
+//highlight square
+
 function highlight(square) {
   document.querySelectorAll('.square').forEach(sq => sq.classList.remove('highlight'));
   square.classList.add('highlight');
@@ -231,7 +204,7 @@ function movePiece(fromSquare, toSquare) {
   toSquare.appendChild(piece);
   fromSquare.classList.remove('highlight');
 
-  //king logic
+  // king logic
   if ((currentPlayer === 'white' && toRow === 7) || (currentPlayer === 'black' && toRow === 0)) {
     piece.classList.add('king');
     piece.innerHTML = '<span class="king-label">♔</span>';
@@ -240,14 +213,15 @@ function movePiece(fromSquare, toSquare) {
 
 
 
-//general move validation
+//move validation
+
 function isValidMove(from, to) {
   const fromRow = parseInt(from.dataset.row);
   const fromCol = parseInt(from.dataset.col);
   const toRow = parseInt(to.dataset.row);
   const toCol = parseInt(to.dataset.col);
 
-  //must be a dark square and empty
+  // Must be a dark square and empty
   if (!to.classList.contains('dark') || to.querySelector('.piece')) return false;
 
   const piece = from.querySelector('.piece');
@@ -257,12 +231,12 @@ function isValidMove(from, to) {
   const rowDiff = toRow - fromRow;
   const colDiff = toCol - fromCol;
 
-  //simple diagonal move
+  // Simple diagonal move
   if (Math.abs(rowDiff) === 1 && Math.abs(colDiff) === 1) {
     if (isKing || rowDiff === direction) return true;
   }
 
-  //jump move
+  // Jump move
   if (Math.abs(rowDiff) === 2 && Math.abs(colDiff) === 2) {
     const midRow = (fromRow + toRow) / 2;
     const midCol = (fromCol + toCol) / 2;
@@ -276,36 +250,11 @@ function isValidMove(from, to) {
   return false;
 }
 
-//jump validation
-function canPieceJump(square) {
-  const piece = square.querySelector('.piece');
-  if (!piece) return false;
-
-  const fromRow = parseInt(square.dataset.row);
-  const fromCol = parseInt(square.dataset.col);
-  const isKing = piece.classList.contains('king');
-  const directions = isKing ? [-1, 1] : [piece.classList.contains('white') ? 1 : -1];
-
-  for (let dr of directions) {
-    for (let dc of [-1, 1]) {
-      const toRow = fromRow + dr * 2;
-      const toCol = fromCol + dc * 2;
-      const jumpSquare = document.querySelector(`[data-row='${toRow}'][data-col='${toCol}']`);
-      if (jumpSquare && isValidMove(square, jumpSquare)) {
-        return true;
-      }
-    }
-  }
-
-  return false;
-}
-
 //support
 function opponent() {
   return currentPlayer === 'white' ? 'black' : 'white';
 }
 
-//toggles between players
 function togglePlayer() {
   currentPlayer = opponent();
 }
@@ -323,7 +272,8 @@ function updateTurnDisplay() {
 }
 
 
-//checks for a stalemate
+//stalemate checker
+
 function hasAnyLegalMoves(playerColor) {
   const pieces = document.querySelectorAll(`.piece.${playerColor}`);
   for (let piece of pieces) {
@@ -351,6 +301,7 @@ function hasAnyLegalMoves(playerColor) {
 }
 
 //forces jump when available
+
 function getForcedJumpSquares(playerColor) {
   const candidates = [];
   const pieces = document.querySelectorAll(`.piece.${playerColor}`);
@@ -378,6 +329,7 @@ function getForcedJumpSquares(playerColor) {
 }
 
 //wins & stalemate
+
 function checkWinCondition() {
   const whitePieces = document.querySelectorAll('.piece.white');
   const blackPieces = document.querySelectorAll('.piece.black');
@@ -399,8 +351,8 @@ function checkWinCondition() {
   if (!hasAnyLegalMoves('white') && !hasAnyLegalMoves('black')) {
     if (gamemode === "4player") {
       alert("Stalemate! Tournament cannot continue.");
-      victor3 = ' '; //force draw
-      gameCounter = 4; //skip to end
+      victor3 = ' '; // force draw
+      gameCounter = 4; // skip to end
     } else {
       alert("Stalemate! It's a draw.");
     }
@@ -424,7 +376,7 @@ function storeVictor(winner) {
 //end game or round
 function endGame() {
   document.querySelectorAll('.square').forEach(sq => {
-    sq.replaceWith(sq.cloneNode(true)); //removes event listeners
+    sq.replaceWith(sq.cloneNode(true)); // removes event listeners
   });
 
   document.getElementById('turnDisplay').innerText = 'Game over';
@@ -453,8 +405,6 @@ function resetBoard() {
   selectedPiece = null;
   currentPlayer = 'white';
   forcedJumpSquares = [];
-  multiJumpInProgress = false;
-  jumpOriginSquare = null;
 
   for (let row = 0; row < 8; row++) {
     for (let col = 0; col < 8; col++) {
@@ -493,8 +443,6 @@ function resetGame() {
   currentPlayer = 'white';
   gameCounter = 1;
   gameStarted = false;
-  multiJumpInProgress = false;
-  jumpOriginSquare = null;
   victor1 = '';
   victor2 = '';
   victor3 = ' ';
